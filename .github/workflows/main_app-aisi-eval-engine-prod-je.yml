@@ -14,7 +14,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    # 💡作業場所を「backend」フォルダの中に指定します
+    # 💡スクショの通り、直下でOKなので「./backend」を指定しています
     defaults:
       run:
         working-directory: ./backend
@@ -22,13 +22,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # 💡Pythonをセットアップする命令に直しました
       - name: Set up Python version
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
-      # 💡Pythonのライブラリ（requirements.txt）をインストールする命令です
       - name: Create and start virtual environment
         run: |
           python -m venv venv
@@ -54,7 +52,6 @@ jobs:
         with:
           name: python-app
       
-      # 💡あなたのアカウント専用のエンジン側パスワード（救出済み）です
       - name: Login to Azure
         uses: azure/login@v2
         with:
