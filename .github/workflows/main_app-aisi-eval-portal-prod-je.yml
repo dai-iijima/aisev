@@ -12,6 +12,12 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
+    # 💡【追加】すべての作業を「frontend」フォルダの中でやるよ、という命令
+    defaults:
+      run:
+        working-directory: ./frontend
+    
     permissions:
       contents: read #This is required for actions/checkout
 
@@ -23,6 +29,10 @@ jobs:
         with:
           node-version: '24.x'
 
+          cache: 'npm'
+          # 💡【追加】キャッシュの確認もfrontendフォルダの中を見にいく設定
+          cache-dependency-path: ./frontend/package-lock.json
+
       - name: npm install, build, and test
         run: |
           npm install
@@ -33,7 +43,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: .
+          # 💡【変更】できあがった「dist」フォルダだけをAzureに送る設定
+          path: ./frontend/dist
 
   deploy:
     runs-on: ubuntu-latest
