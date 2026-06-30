@@ -13,48 +13,40 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    
-    # 👇【追加】このjobの中の「run:」コマンドはすべて「./frontend」の中で実行する設定
+
+    # 💡作業場所を「backend」フォルダの中に指定します
     defaults:
       run:
-        working-directory: ./frontend
+        working-directory: ./backend
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      # 💡Pythonをセットアップする命令に直しました
+      - name: Set up Python version
+        uses: actions/setup-python@v5
         with:
-          node-version: '20'
-          cache: 'npm'
-          # 👇【追加】キャッシュもfrontend内のpackage-lock.jsonを見るように指定
-          cache-dependency-path: ./frontend/package-lock.json
+          python-version: '3.12'
 
-      - name: npm install, build, and test
+      # 💡Pythonのライブラリ（requirements.txt）をインストールする命令です
+      - name: Create and start virtual environment
         run: |
-          npm install
-          npm run build --if-present
+          python -m venv venv
+          source venv/bin/activate
+          pip install -r requirements.txt
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
-          name: node-app
-          path: ./frontend/dist  # 💡【修正】Viteが書き出したdistフォルダだけを指定
-            .
-            !antenv/
-
-      # 🚫 Opting Out of Oryx Build
-      # If you prefer to disable the Oryx build process during deployment, follow these steps:
-      # 1. Remove the SCM_DO_BUILD_DURING_DEPLOYMENT app setting from your Azure App Service Environment variables.
-      # 2. Refer to sample workflows for alternative deployment strategies: https://github.com/Azure/actions-workflow-samples/tree/master/AppService
-      
+          name: python-app
+          path: ./backend
 
   deploy:
     runs-on: ubuntu-latest
     needs: build
     permissions:
-      id-token: write #This is required for requesting the JWT
-      contents: read #This is required for actions/checkout
+      id-token: write
+      contents: read
 
     steps:
       - name: Download artifact from build job
@@ -62,6 +54,7 @@ jobs:
         with:
           name: python-app
       
+      # 💡あなたのアカウント専用のエンジン側パスワード（救出済み）です
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -75,4 +68,4 @@ jobs:
         with:
           app-name: 'app-aisi-eval-engine-prod-je'
           slot-name: 'Production'
-          
+          package: .
